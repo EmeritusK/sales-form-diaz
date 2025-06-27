@@ -1,0 +1,146 @@
+<div class="container">
+    <div class="header">
+        <h1>📊 Reporte de Novedades</h1>
+        <p>Sistema de registro para vendedores</p>
+    </div>
+
+    <div class="form-container">
+        <form (ngSubmit)="enviarReporte()" #reporteForm="ngForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="vendedor">👤 Nombre del Vendedor</label>
+                    <input type="text" id="vendedor" name="vendedor" [(ngModel)]="vendedor" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">📅 Fecha</label>
+                    <input type="date" id="fecha" name="fecha" [(ngModel)]="fecha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="factura">🧾 Número de Factura</label>
+                    <input type="text" id="factura" name="factura" [(ngModel)]="factura" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cliente">🏢 Nombre del Cliente</label>
+                    <input type="text" id="cliente" name="cliente" [(ngModel)]="cliente" required>
+                </div>
+            </div>
+
+            <div class="precio-section">
+                <h3>Información de Precios</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="precioFacturado">💵 Precio Facturado ($)</label>
+                        <input type="number" id="precioFacturado" name="precioFacturado"
+                               [(ngModel)]="precioFacturado" (input)="calcularDiferencia()"
+                               step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="precioOfrecido">💸 Precio Ofrecido ($)</label>
+                        <input type="number" id="precioOfrecido" name="precioOfrecido"
+                               [(ngModel)]="precioOfrecido" (input)="calcularDiferencia()"
+                               step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="diferencia">📊 Diferencia de Precios ($)</label>
+                        <input type="number" id="diferencia" name="diferencia"
+                               [value]="diferencia" readonly class="calculated-field">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cantidad">📦 Cantidad</label>
+                        <input type="number" id="cantidad" name="cantidad"
+                               [(ngModel)]="cantidad" (input)="calcularDescuento()" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="producto">🛍️ Producto</label>
+                        <input type="text" id="producto" name="producto" [(ngModel)]="producto" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="totalDescuento">🎯 Total Descuento ($)</label>
+                        <input type="number" id="totalDescuento" name="totalDescuento"
+                               [value]="totalDescuento" readonly class="calculated-field">
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" (click)="agregarEntrada()">
+                        ➕ Agregar Entrada
+                    </button>
+                </div>
+            </div>
+
+            <div class="entries-section">
+                <h3>📝 Entradas Registradas</h3>
+                <div class="entries-list">
+                    <div class="entry-item entry-header">
+                        <div>Cliente</div>
+                        <div>Producto</div>
+                        <div>Cantidad</div>
+                        <div>Descuento</div>
+                        <div>Acción</div>
+                    </div>
+                    <div id="entriesList">
+                        <div class="entry-item" *ngFor="let entrada of entradas">
+                            <div>
+                                <strong>{{ entrada.cliente }}</strong><br>
+                                <small>Factura: {{ entrada.factura }}</small>
+                            </div>
+                            <div>{{ entrada.producto }}</div>
+                            <div>{{ entrada.cantidad }}</div>
+                            <div><strong>${{ entrada.totalDescuento.toFixed(2) }}</strong></div>
+                            <div>
+                                <button type="button" class="btn btn-danger" (click)="eliminarEntrada(entrada.id)">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary" *ngIf="mostrarResumen">
+                <h3>📈 Resumen del Reporte</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <strong>{{ entradas.length }}</strong>
+                        <span>Entradas</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>${{ getTotalDescuentos().toFixed(2) }}</strong>
+                        <span>Total Descuentos</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>${{ getPromedioDescuento().toFixed(2) }}</strong>
+                        <span>Promedio por Entrada</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="observaciones">📋 Observaciones Adicionales</label>
+                <textarea id="observaciones" name="observaciones" [(ngModel)]="observaciones"
+                          rows="4" placeholder="Agregue cualquier observación relevante..."></textarea>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">
+                    🚀 Enviar Reporte
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
+                    🔄 Limpiar Todo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" [class.show]="mostrarToast" [class]="'toast ' + toastTipo">
+    {{ toastMensaje }}
+</div>

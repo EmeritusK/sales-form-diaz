@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Novedades - Vendedores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .precio-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border-left: 4px solid #4facfe;
+        }
+
+        .precio-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .precio-section h3::before {
+            content: "💰";
+            font-size: 1.2em;
+        }
+
+        .calculated-field {
+            background: #e8f4fd !important;
+            font-weight: 600;
+            color: #2c5aa0;
+        }
+
+        .entries-section {
+            background: #f0f8ff;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        .entries-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .entry-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 60px;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .entry-item:last-child {
+            border-bottom: none;
+        }
+
+        .entry-header {
+            background: #4facfe;
+            color: white;
+            font-weight: 600;
+            padding: 12px 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .summary h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-item strong {
+            display: block;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .entry-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Reporte de Novedades</h1>
+            <p>Sistema de registro para vendedores</p>
+        </div>
+
+        <div class="form-container">
+            <form id="reporteForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="vendedor">👤 Nombre del Vendedor</label>
+                        <input type="text" id="vendedor" name="vendedor" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha">📅 Fecha</label>
+                        <input type="date" id="fecha" name="fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="factura">🧾 Número de Factura</label>
+                        <input type="text" id="factura" name="factura" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cliente">🏢 Nombre del Cliente</label>
+                        <input type="text" id="cliente" name="cliente" required>
+                    </div>
+                </div>
+
+                <div class="precio-section">
+                    <h3>Información de Precios</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="precioFacturado">💵 Precio Facturado ($)</label>
+                            <input type="number" id="precioFacturado" name="precioFacturado" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="precioOfrecido">💸 Precio Ofrecido ($)</label>
+                            <input type="number" id="precioOfrecido" name="precioOfrecido" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="diferencia">📊 Diferencia de Precios ($)</label>
+                            <input type="number" id="diferencia" name="diferencia" step="0.01" readonly class="calculated-field">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cantidad">📦 Cantidad</label>
+                            <input type="number" id="cantidad" name="cantidad" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="producto">🛍️ Producto</label>
+                            <input type="text" id="producto" name="producto" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalDescuento">🎯 Total Descuento ($)</label>
+                            <input type="number" id="totalDescuento" name="totalDescuento" step="0.01" readonly class="calculated-field">
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="agregarEntrada()">
+                            ➕ Agregar Entrada
+                        </button>
+                    </div>
+                </div>
+
+                <div class="entries-section">
+                    <h3>📝 Entradas Registradas</h3>
+                    <div class="entries-list">
+                        <div class="entry-item entry-header">
+                            <div>Cliente</div>
+                            <div>Producto</div>
+                            <div>Cantidad</div>
+                            <div>Descuento</div>
+                            <div>Acción</div>
+                        </div>
+                        <div id="entriesList"></div>
+                    </div>
+                </div>
+
+                <div class="summary" id="summary" style="display: none;">
+                    <h3>📈 Resumen del Reporte</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <strong id="totalEntradas">0</strong>
+                            <span>Entradas</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong id="totalDescuentos">$0.00</strong>
+                            <span>Total Descuentos</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong id="promedioDescuento">$0.00</strong>
+                            <span>Promedio por Entrada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="observaciones">📋 Observaciones Adicionales</label>
+                    <textarea id="observaciones" name="observaciones" rows="4" placeholder="Agregue cualquier observación relevante..."></textarea>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">
+                        🚀 Enviar Reporte
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">
+                        🔄 Limpiar Todo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let entradas = [];
+        let entryCounter = 0;
+
+        // Configurar fecha actual por defecto
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // Calcular diferencia de precios automáticamente
+        document.getElementById('precioFacturado').addEventListener('input', calcularDiferencia);
+        document.getElementById('precioOfrecido').addEventListener('input', calcularDiferencia);
+        document.getElementById('cantidad').addEventListener('input', calcularDescuento);
+
+        function calcularDiferencia() {
+            const facturado = parseFloat(document.getElementById('precioFacturado').value) || 0;
+            const ofrecido = parseFloat(document.getElementById('precioOfrecido').value) || 0;
+            const diferencia = facturado - ofrecido;
+            document.getElementById('diferencia').value = diferencia.toFixed(2);
+            calcularDescuento();
+        }
+
+        function calcularDescuento() {
+            const diferencia = parseFloat(document.getElementById('diferencia').value) || 0;
+            const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
+            const totalDescuento = diferencia * cantidad;
+            document.getElementById('totalDescuento').value = totalDescuento.toFixed(2);
+        }
+
+        function agregarEntrada() {
+            const factura = document.getElementById('factura').value;
+            const cliente = document.getElementById('cliente').value;
+            const producto = document.getElementById('producto').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const precioFacturado = document.getElementById('precioFacturado').value;
+            const precioOfrecido = document.getElementById('precioOfrecido').value;
+            const totalDescuento = document.getElementById('totalDescuento').value;
+
+            if (!cliente || !producto || !cantidad || !precioFacturado || !precioOfrecido) {
+                mostrarToast('⚠️ Complete todos los campos antes de agregar la entrada', 'warning');
+                return;
+            }
+
+            const entrada = {
+                id: ++entryCounter,
+                factura,
+                cliente,
+                producto,
+                cantidad: parseInt(cantidad),
+                precioFacturado: parseFloat(precioFacturado),
+                precioOfrecido: parseFloat(precioOfrecido),
+                diferencia: parseFloat(precioFacturado) - parseFloat(precioOfrecido),
+                totalDescuento: parseFloat(totalDescuento)
+            };
+
+            entradas.push(entrada);
+            mostrarEntradas();
+            limpiarCamposEntrada();
+            actualizarResumen();
+            mostrarToast('✅ Entrada agregada correctamente', 'success');
+        }
+
+        function mostrarEntradas() {
+            const lista = document.getElementById('entriesList');
+            lista.innerHTML = '';
+
+            entradas.forEach(entrada => {
+                const div = document.createElement('div');
+                div.className = 'entry-item';
+                div.innerHTML = `
+                    <div><strong>${entrada.cliente}</strong><br><small>Factura: ${entrada.factura}</small></div>
+                    <div>${entrada.producto}</div>
+                    <div>${entrada.cantidad}</div>
+                    <div><strong>$${entrada.totalDescuento.toFixed(2)}</strong></div>
+                    <div><button class="btn btn-danger" onclick="eliminarEntrada(${entrada.id})">🗑️</button></div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function eliminarEntrada(id) {
+            entradas = entradas.filter(entrada => entrada.id !== id);
+            mostrarEntradas();
+            actualizarResumen();
+            mostrarToast('🗑️ Entrada eliminada', 'info');
+        }
+
+        function limpiarCamposEntrada() {
+            document.getElementById('factura').value = '';
+            document.getElementById('cliente').value = '';
+            document.getElementById('producto').value = '';
+            document.getElementById('cantidad').value = '';
+            document.getElementById('precioFacturado').value = '';
+            document.getElementById('precioOfrecido').value = '';
+            document.getElementById('diferencia').value = '';
+            document.getElementById('totalDescuento').value = '';
+        }
+
+        function actualizarResumen() {
+            const summary = document.getElementById('summary');
+            if (entradas.length > 0) {
+                summary.style.display = 'block';
+                const totalDescuentos = entradas.reduce((sum, entrada) => sum + entrada.totalDescuento, 0);
+                const promedioDescuento = totalDescuentos / entradas.length;
+
+                document.getElementById('totalEntradas').textContent = entradas.length;
+                document.getElementById('totalDescuentos').textContent = `$${totalDescuentos.toFixed(2)}`;
+                document.getElementById('promedioDescuento').textContent = `$${promedioDescuento.toFixed(2)}`;
+            } else {
+                summary.style.display = 'none';
+            }
+        }
+
+        function limpiarFormulario() {
+            if (confirm('¿Está seguro de que desea limpiar todo el formulario?')) {
+                document.getElementById('reporteForm').reset();
+                entradas = [];
+                entryCounter = 0;
+                mostrarEntradas();
+                actualizarResumen();
+                document.getElementById('fecha').valueAsDate = new Date();
+                mostrarToast('🔄 Formulario limpiado', 'info');
+            }
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.className = `toast ${tipo}`;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Envío del formulario
+        document.getElementById('reporteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (entradas.length === 0) {
+                mostrarToast('⚠️ Debe agregar al menos una entrada antes de enviar', 'warning');
+                return;
+            }
+
+            const vendedor = document.getElementById('vendedor').value;
+            const fecha = document.getElementById('fecha').value;
+            const observaciones = document.getElementById('observaciones').value;
+
+            const reporte = {
+                vendedor: vendedor,
+                fecha: fecha,
+                observaciones: observaciones,
+                entradas: entradas,
+                resumen: {
+                    totalEntradas: entradas.length,
+                    totalDescuentos: entradas.reduce((sum, entrada) => sum + entrada.totalDescuento, 0),
+                    promedioDescuento: entradas.reduce((sum, entrada) => sum + entrada.totalDescuento, 0) / entradas.length
+                },
+                fechaEnvio: new Date().toISOString()
+            };
+
+            // Generar CSV para descarga
+            generarCSV(reporte);
+
+            // Generar email con los datos
+            generarEmail(reporte);
+
+            mostrarToast('🎉 Reporte generado correctamente. Descarga el archivo CSV y envía el email.', 'success');
+        });
+
+        function generarCSV(reporte) {
+            let csv = 'Vendedor,Fecha,Factura,Cliente,Producto,Cantidad,Precio Facturado,Precio Ofrecido,Diferencia,Total Descuento\n';
+
+            reporte.entradas.forEach(entrada => {
+                csv += `${reporte.vendedor},${reporte.fecha},${entrada.factura},"${entrada.cliente}","${entrada.producto}",${entrada.cantidad},${entrada.precioFacturado},${entrada.precioOfrecido},${entrada.diferencia},${entrada.totalDescuento}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `reporte_${reporte.vendedor}_${reporte.fecha}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function generarEmail(reporte) {
+            const subject = `Reporte de Ventas - ${reporte.vendedor} - ${reporte.fecha}`;
+
+            let body = `Hola,\n\n`;
+            body += `Adjunto el reporte de ventas de ${reporte.vendedor} correspondiente al ${reporte.fecha}.\n\n`;
+            body += `RESUMEN:\n`;
+            body += `- Total de entradas: ${reporte.resumen.totalEntradas}\n`;
+            body += `- Total descuentos: $${reporte.resumen.totalDescuentos.toFixed(2)}\n`;
+            body += `- Promedio por entrada: $${reporte.resumen.promedioDescuento.toFixed(2)}\n\n`;
+
+            body += `DETALLE DE ENTRADAS:\n`;
+            reporte.entradas.forEach((entrada, index) => {
+                body += `${index + 1}. ${entrada.cliente} - ${entrada.producto}\n`;
+                body += `   Factura: ${entrada.factura} | Cantidad: ${entrada.cantidad}\n`;
+                body += `   Precio Facturado: $${entrada.precioFacturado.toFixed(2)} | Precio Ofrecido: $${entrada.precioOfrecido.toFixed(2)}\n`;
+                body += `   Descuento Total: $${entrada.totalDescuento.toFixed(2)}\n\n`;
+            });
+
+            if (reporte.observaciones) {
+                body += `OBSERVACIONES:\n${reporte.observaciones}\n\n`;
+            }
+
+            body += `Saludos,\n${reporte.vendedor}`;
+
+            // Crear enlace mailto (CAMBIAR por tu email)
+            const mailtoLink = `mailto:tu-email@empresa.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            // Abrir cliente de email
+            window.open(mailtoLink);
+        }
+    </script>
+</body>
+</html>
