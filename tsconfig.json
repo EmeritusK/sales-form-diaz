@@ -12,7 +12,8 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "ES2022",
+    "target": "es2017",
+    "lib": ["es2017", "dom"],
     "module": "preserve"
   },
   "angularCompilerOptions": {

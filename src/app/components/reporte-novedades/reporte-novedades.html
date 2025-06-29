@@ -1,146 +1,481 @@
-<div class="container">
-    <div class="header">
-        <h1>📊 Reporte de Novedades</h1>
-        <p>Sistema de registro para vendedores</p>
+<!-- Toast para mensajes -->
+<p-toast></p-toast>
+
+<!-- Confirmación para eliminar -->
+<p-confirmDialog></p-confirmDialog>
+
+<div class="reporte-container">
+  <div class="reporte-header">
+    <div class="header-content">
+      <h1>Reporte de Novedades</h1>
+      <p>Sistema de gestión de reportes comerciales</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-card">
+      <p-progressSpinner></p-progressSpinner>
+      <p>Guardando reporte...</p>
+    </div>
+  </div>
+
+  <form class="reporte-form" (ngSubmit)="guardarReporte()">
+    <!-- Información del reporte -->
+    <p-card header="Información del Reporte" styleClass="mb-4">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="vendedor">Vendedor *</label>
+          <div class="input-with-button">
+            <p-dropdown
+              name="vendedorNueva"
+              [options]="vendedores"
+              optionLabel="nombre"
+              optionValue="nombre"
+              [(ngModel)]="reporte.vendedor_nombre"
+              placeholder="Selecciona un vendedor"
+              [filter]="true"
+              [showClear]="true"
+              class="w-full"
+              required
+            >
+            </p-dropdown>
+            <p-button
+              type="button"
+              icon="pi pi-plus"
+              severity="success"
+              size="small"
+              (onClick)="crearNuevoVendedor()"
+              pTooltip="Crear nuevo vendedor"
+              styleClass="p-button-sm"
+            ></p-button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fecha">Fecha *</label>
+          <p-calendar
+            id="fecha"
+            name="fecha"
+            [(ngModel)]="reporte.fecha"
+            dateFormat="yy-mm-dd"
+            class="w-full"
+            required
+          ></p-calendar>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="observaciones">Observaciones</label>
+        <textarea
+          pInputTextarea
+          id="observaciones"
+          name="observaciones"
+          [(ngModel)]="reporte.observaciones"
+          rows="3"
+          placeholder="Observaciones adicionales del reporte..."
+          class="w-full"
+        ></textarea>
+      </div>
+    </p-card>
+
+    <!-- Entradas del reporte -->
+    <p-card header="Detalle de Transacciones" styleClass="mb-4">
+      <!-- Card para agregar nueva transacción -->
+      <p-panel header="Agregar Nueva Transacción" styleClass="mb-4">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Número de Factura *</label>
+            <input
+              pInputText
+              type="text"
+              name="facturaNueva"
+              [(ngModel)]="nuevaTransaccion.factura"
+              placeholder="Ej: FAC-001-2024"
+              class="w-full"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Cliente *</label>
+            <div class="input-with-button">
+              <p-dropdown
+                name="clienteNueva"
+                [options]="clientes"
+                optionLabel="nombre"
+                optionValue="nombre"
+                [(ngModel)]="nuevaTransaccion.cliente"
+                placeholder="Selecciona un cliente"
+                [filter]="true"
+                [showClear]="true"
+                class="w-full"
+                required
+              >
+              </p-dropdown>
+              <p-button
+                type="button"
+                icon="pi pi-plus"
+                severity="success"
+                size="small"
+                (onClick)="crearNuevoCliente()"
+                pTooltip="Crear nuevo cliente"
+                styleClass="p-button-sm"
+              ></p-button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Producto *</label>
+            <div class="input-with-button">
+              <p-dropdown
+                name="productoNueva"
+                [options]="productos"
+                optionLabel="nombre"
+                optionValue="nombre"
+                [(ngModel)]="nuevaTransaccion.producto"
+                placeholder="Selecciona un producto"
+                [filter]="true"
+                [showClear]="true"
+                [filterBy]="'nombre,descripcion'"
+                class="w-full"
+                required
+              >
+                <ng-template pTemplate="selectedItem" let-item>
+                  {{ item.nombre }} <span *ngIf="item.precio_base">- ${{ item.precio_base }}</span>
+                </ng-template>
+                <ng-template pTemplate="item" let-item>
+                  {{ item.nombre }} <span *ngIf="item.precio_base">- ${{ item.precio_base }}</span>
+                </ng-template>
+              </p-dropdown>
+              <p-button
+                type="button"
+                icon="pi pi-plus"
+                severity="success"
+                size="small"
+                (onClick)="crearNuevoProducto()"
+                pTooltip="Crear nuevo producto"
+                styleClass="p-button-sm"
+              ></p-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cantidad *</label>
+            <p-inputNumber
+              name="cantidadNueva"
+              [(ngModel)]="nuevaTransaccion.cantidad"
+              [min]="1"
+              class="w-full"
+              required
+              placeholder="0"
+            ></p-inputNumber>
+          </div>
+
+          <div class="form-group">
+            <label>Precio Facturado *</label>
+            <p-inputNumber
+              name="precioFacturadoNueva"
+              [(ngModel)]="nuevaTransaccion.precioFacturado"
+              [min]="0"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              mode="currency"
+              currency="USD"
+              class="w-full"
+              required
+              placeholder="0.00"
+            ></p-inputNumber>
+          </div>
+
+          <div class="form-group">
+            <label>Precio Ofrecido *</label>
+            <p-inputNumber
+              name="precioOfrecidoNueva"
+              [(ngModel)]="nuevaTransaccion.precioOfrecido"
+              [min]="0"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              mode="currency"
+              currency="USD"
+              class="w-full"
+              required
+              placeholder="0.00"
+            ></p-inputNumber>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <p-button
+            type="button"
+            label="Agregar Transacción"
+            icon="pi pi-plus"
+            (onClick)="agregarTransaccion()"
+            [disabled]="!isNuevaTransaccionValida()"
+            styleClass="p-button-primary"
+          ></p-button>
+        </div>
+      </p-panel>
+
+      <!-- Tabla de transacciones -->
+      <div *ngIf="entradas.length > 0">
+        <h3>Transacciones Agregadas</h3>
+        <p-table
+          [value]="entradas"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>#</th>
+              <th>Factura</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Facturado</th>
+              <th>Precio Ofrecido</th>
+              <th>Diferencia</th>
+              <th>Total Descuento</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-entrada let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ entrada.factura }}</td>
+              <td>{{ entrada.cliente }}</td>
+              <td>{{ entrada.producto }}</td>
+              <td>{{ entrada.cantidad }}</td>
+              <td>${{ entrada.precioFacturado | number:'1.2-2' }}</td>
+              <td>${{ entrada.precioOfrecido | number:'1.2-2' }}</td>
+              <td>${{ entrada.diferencia | number:'1.2-2' }}</td>
+              <td>${{ entrada.totalDescuento | number:'1.2-2' }}</td>
+              <td>
+                <p-button
+                  type="button"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  (onClick)="removeEntrada(entrada.id)"
+                  pTooltip="Eliminar transacción"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-card>
+
+    <!-- Resumen -->
+    <p-card header="Resumen del Reporte" styleClass="mb-4">
+      <div class="resumen-grid">
+        <div class="resumen-card">
+          <i class="pi pi-clipboard" style="font-size: 2rem;"></i>
+          <div class="resumen-content">
+            <span class="resumen-label">Total Transacciones</span>
+            <span class="resumen-value">{{ getTotalEntradas() }}</span>
+          </div>
+        </div>
+        <div class="resumen-card">
+          <i class="pi pi-money-bill" style="font-size: 2rem;"></i>
+          <div class="resumen-content">
+            <span class="resumen-label">Total Descuentos</span>
+            <span class="resumen-value">${{ getTotalDescuentos() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Acciones -->
+    <div class="form-actions">
+      <p-button
+        type="button"
+        label="Descargar CSV"
+        icon="pi pi-download"
+        (onClick)="descargarCSV()"
+        [disabled]="!isFormValid()"
+        styleClass="p-button-secondary"
+      ></p-button>
+
+      <p-button
+        type="button"
+        label="Descargar Todos los Reportes"
+        icon="pi pi-file-excel"
+        (onClick)="showCsvPasswordDialog()"
+        styleClass="p-button-info"
+      ></p-button>
+
+      <p-button
+        type="submit"
+        label="{{ isLoading ? 'Guardando...' : 'Guardar Reporte' }}"
+        icon="{{ isLoading ? 'pi pi-spinner pi-spin' : 'pi pi-save' }}"
+        [disabled]="!isFormValid() || isLoading"
+        styleClass="p-button-primary"
+      ></p-button>
+    </div>
+  </form>
+
+  <!-- Modal de contraseña para descargar todos los reportes -->
+  <p-dialog
+    header="Descargar Todos los Reportes"
+    [(visible)]="showCsvPasswordModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-dialog-sm"
+  >
+    <p>Ingresa la contraseña para descargar todos los reportes:</p>
+    <div class="form-group">
+      <label for="csvPassword">Contraseña</label>
+      <p-password
+        id="csvPassword"
+        [(ngModel)]="csvPassword"
+        placeholder="Ingresa la contraseña"
+        (keyup.enter)="descargarTodosLosReportes()"
+        [feedback]="false"
+        [toggleMask]="true"
+        class="w-full"
+      ></p-password>
     </div>
 
-    <div class="form-container">
-        <form (ngSubmit)="enviarReporte()" #reporteForm="ngForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="vendedor">👤 Nombre del Vendedor</label>
-                    <input type="text" id="vendedor" name="vendedor" [(ngModel)]="vendedor" required>
-                </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        type="button"
+        label="Cancelar"
+        (onClick)="closeCsvPasswordModal()"
+        styleClass="p-button-secondary"
+      ></p-button>
+      <p-button
+        type="button"
+        label="{{ isLoading ? 'Descargando...' : 'Descargar' }}"
+        icon="{{ isLoading ? 'pi pi-spinner pi-spin' : 'pi pi-download' }}"
+        (onClick)="descargarTodosLosReportes()"
+        [disabled]="!csvPassword.trim() || isLoading"
+        styleClass="p-button-primary"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
 
-                <div class="form-group">
-                    <label for="fecha">📅 Fecha</label>
-                    <input type="date" id="fecha" name="fecha" [(ngModel)]="fecha" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="factura">🧾 Número de Factura</label>
-                    <input type="text" id="factura" name="factura" [(ngModel)]="factura" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="cliente">🏢 Nombre del Cliente</label>
-                    <input type="text" id="cliente" name="cliente" [(ngModel)]="cliente" required>
-                </div>
-            </div>
-
-            <div class="precio-section">
-                <h3>Información de Precios</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="precioFacturado">💵 Precio Facturado ($)</label>
-                        <input type="number" id="precioFacturado" name="precioFacturado"
-                               [(ngModel)]="precioFacturado" (input)="calcularDiferencia()"
-                               step="0.01" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="precioOfrecido">💸 Precio Ofrecido ($)</label>
-                        <input type="number" id="precioOfrecido" name="precioOfrecido"
-                               [(ngModel)]="precioOfrecido" (input)="calcularDiferencia()"
-                               step="0.01" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="diferencia">📊 Diferencia de Precios ($)</label>
-                        <input type="number" id="diferencia" name="diferencia"
-                               [value]="diferencia" readonly class="calculated-field">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cantidad">📦 Cantidad</label>
-                        <input type="number" id="cantidad" name="cantidad"
-                               [(ngModel)]="cantidad" (input)="calcularDescuento()" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="producto">🛍️ Producto</label>
-                        <input type="text" id="producto" name="producto" [(ngModel)]="producto" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="totalDescuento">🎯 Total Descuento ($)</label>
-                        <input type="number" id="totalDescuento" name="totalDescuento"
-                               [value]="totalDescuento" readonly class="calculated-field">
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" (click)="agregarEntrada()">
-                        ➕ Agregar Entrada
-                    </button>
-                </div>
-            </div>
-
-            <div class="entries-section">
-                <h3>📝 Entradas Registradas</h3>
-                <div class="entries-list">
-                    <div class="entry-item entry-header">
-                        <div>Cliente</div>
-                        <div>Producto</div>
-                        <div>Cantidad</div>
-                        <div>Descuento</div>
-                        <div>Acción</div>
-                    </div>
-                    <div id="entriesList">
-                        <div class="entry-item" *ngFor="let entrada of entradas">
-                            <div>
-                                <strong>{{ entrada.cliente }}</strong><br>
-                                <small>Factura: {{ entrada.factura }}</small>
-                            </div>
-                            <div>{{ entrada.producto }}</div>
-                            <div>{{ entrada.cantidad }}</div>
-                            <div><strong>${{ entrada.totalDescuento.toFixed(2) }}</strong></div>
-                            <div>
-                                <button type="button" class="btn btn-danger" (click)="eliminarEntrada(entrada.id)">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="summary" *ngIf="mostrarResumen">
-                <h3>📈 Resumen del Reporte</h3>
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <strong>{{ entradas.length }}</strong>
-                        <span>Entradas</span>
-                    </div>
-                    <div class="summary-item">
-                        <strong>${{ getTotalDescuentos().toFixed(2) }}</strong>
-                        <span>Total Descuentos</span>
-                    </div>
-                    <div class="summary-item">
-                        <strong>${{ getPromedioDescuento().toFixed(2) }}</strong>
-                        <span>Promedio por Entrada</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group full-width">
-                <label for="observaciones">📋 Observaciones Adicionales</label>
-                <textarea id="observaciones" name="observaciones" [(ngModel)]="observaciones"
-                          rows="4" placeholder="Agregue cualquier observación relevante..."></textarea>
-            </div>
-
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">
-                    🚀 Enviar Reporte
-                </button>
-                <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
-                    🔄 Limpiar Todo
-                </button>
-            </div>
-        </form>
+  <!-- Modal para crear nuevo vendedor -->
+  <p-dialog
+    header="Crear Nuevo Vendedor"
+    [(visible)]="showVendedorModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-dialog-sm"
+  >
+    <div class="form-group">
+      <label for="nuevoVendedorNombre">Nombre del Vendedor</label>
+      <input
+        pInputText
+        id="nuevoVendedorNombre"
+        [(ngModel)]="nuevoVendedorNombre"
+        placeholder="Ingresa el nombre del vendedor"
+        class="w-full"
+        (keyup.enter)="guardarNuevoVendedor()"
+      >
     </div>
-</div>
 
-<div class="toast" [class.show]="mostrarToast" [class]="'toast ' + toastTipo">
-    {{ toastMensaje }}
+    <ng-template pTemplate="footer">
+      <p-button
+        type="button"
+        label="Cancelar"
+        (onClick)="showVendedorModal = false"
+        styleClass="p-button-secondary"
+      ></p-button>
+      <p-button
+        type="button"
+        label="Crear Vendedor"
+        icon="pi pi-plus"
+        (onClick)="guardarNuevoVendedor()"
+        [disabled]="!nuevoVendedorNombre.trim()"
+        styleClass="p-button-success"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal para crear nuevo cliente -->
+  <p-dialog
+    header="Crear Nuevo Cliente"
+    [(visible)]="showClienteModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-dialog-sm"
+  >
+    <div class="form-group">
+      <label for="nuevoClienteNombre">Nombre del Cliente</label>
+      <input
+        pInputText
+        id="nuevoClienteNombre"
+        [(ngModel)]="nuevoClienteNombre"
+        placeholder="Ingresa el nombre del cliente"
+        class="w-full"
+        (keyup.enter)="guardarNuevoCliente()"
+      >
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        type="button"
+        label="Cancelar"
+        (onClick)="showClienteModal = false"
+        styleClass="p-button-secondary"
+      ></p-button>
+      <p-button
+        type="button"
+        label="Crear Cliente"
+        icon="pi pi-plus"
+        (onClick)="guardarNuevoCliente()"
+        [disabled]="!nuevoClienteNombre.trim()"
+        styleClass="p-button-success"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal para crear nuevo producto -->
+  <p-dialog
+    header="Crear Nuevo Producto"
+    [(visible)]="showProductoModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-dialog-sm"
+  >
+    <div class="form-group">
+      <label for="nuevoProductoNombre">Nombre del Producto</label>
+      <input
+        pInputText
+        id="nuevoProductoNombre"
+        [(ngModel)]="nuevoProductoNombre"
+        placeholder="Ingresa el nombre del producto"
+        class="w-full"
+        (keyup.enter)="guardarNuevoProducto()"
+      >
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        type="button"
+        label="Cancelar"
+        (onClick)="showProductoModal = false"
+        styleClass="p-button-secondary"
+      ></p-button>
+      <p-button
+        type="button"
+        label="Crear Producto"
+        icon="pi pi-plus"
+        (onClick)="guardarNuevoProducto()"
+        [disabled]="!nuevoProductoNombre.trim()"
+        styleClass="p-button-success"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
 </div>
