@@ -68,6 +68,31 @@ export interface CreateEntradaReporte {
   precio_ofrecido: number;
 }
 
+// Interfaz para paginación
+export interface PaginationResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+// Interfaz para filtros de búsqueda
+export interface ClienteFilters {
+  search?: string;
+  activo?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+// Interfaz para filtros de búsqueda de productos
+export interface ProductoFilters {
+  search?: string;
+  activo?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
 // Configuración de Supabase (CAMBIAR POR TUS CREDENCIALES)
 const SUPABASE_URL = 'https://mgxgsfkespclwluhyipy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1neGdzZmtlc3BjbHdsdWh5aXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExNTIyMjIsImV4cCI6MjA2NjcyODIyMn0.0tTAeEWkH1rMk6865StYJXBlodjcXpmw5Sfb0ywtG4w';
@@ -173,7 +198,81 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  // Métodos para Clientes
+  // Métodos para Clientes con Lazy Loading
+  async getClientesPaginated(
+    page: number = 1,
+    pageSize: number = 5,
+    search?: string,
+    activo: boolean = true
+  ): Promise<PaginationResult<Cliente>> {
+    if (!this.isClientAvailable()) {
+      throw new Error('Supabase client no disponible');
+    }
+
+    try {
+      let query = this.supabase!
+        .from('clientes')
+        .select('*', { count: 'exact' });
+
+      // Aplicar filtros
+      if (search && search.trim()) {
+        query = query.or(`nombre.ilike.%${search}%,email.ilike.%${search}%,telefono.ilike.%${search}%`);
+      }
+
+      if (activo !== undefined) {
+        query = query.eq('activo', activo);
+      }
+
+      // Aplicar paginación
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order('nombre')
+        .range(from, to);
+
+      if (error) throw error;
+
+      const total = count || 0;
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: data || [],
+        total,
+        page,
+        pageSize,
+        totalPages
+      };
+    } catch (error) {
+      console.error('Error en getClientesPaginated:', error);
+      throw error;
+    }
+  }
+
+  // Método para búsqueda global de clientes (sin paginación para autocompletado)
+  async searchClientes(search: string, limit: number = 10): Promise<Cliente[]> {
+    if (!this.isClientAvailable()) {
+      throw new Error('Supabase client no disponible');
+    }
+
+    try {
+      const { data, error } = await this.supabase!
+        .from('clientes')
+        .select('*')
+        .or(`nombre.ilike.%${search}%,email.ilike.%${search}%,telefono.ilike.%${search}%`)
+        .eq('activo', true)
+        .order('nombre')
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error en searchClientes:', error);
+      throw error;
+    }
+  }
+
+  // Método original para compatibilidad (carga todos los clientes)
   async getClientes(): Promise<Cliente[]> {
     if (!this.isClientAvailable()) {
       throw new Error('Supabase client no disponible');
@@ -233,6 +332,80 @@ export class SupabaseService {
 
     if (error) throw error;
     return data;
+  }
+
+  // Métodos para Productos con Lazy Loading
+  async getProductosPaginated(
+    page: number = 1,
+    pageSize: number = 5,
+    search?: string,
+    activo: boolean = true
+  ): Promise<PaginationResult<Producto>> {
+    if (!this.isClientAvailable()) {
+      throw new Error('Supabase client no disponible');
+    }
+
+    try {
+      let query = this.supabase!
+        .from('productos')
+        .select('*', { count: 'exact' });
+
+      // Aplicar filtros
+      if (search && search.trim()) {
+        query = query.or(`nombre.ilike.%${search}%,descripcion.ilike.%${search}%`);
+      }
+
+      if (activo !== undefined) {
+        query = query.eq('activo', activo);
+      }
+
+      // Aplicar paginación
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order('nombre')
+        .range(from, to);
+
+      if (error) throw error;
+
+      const total = count || 0;
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: data || [],
+        total,
+        page,
+        pageSize,
+        totalPages
+      };
+    } catch (error) {
+      console.error('Error en getProductosPaginated:', error);
+      throw error;
+    }
+  }
+
+  // Método para búsqueda global de productos (sin paginación para autocompletado)
+  async searchProductos(search: string, limit: number = 10): Promise<Producto[]> {
+    if (!this.isClientAvailable()) {
+      throw new Error('Supabase client no disponible');
+    }
+
+    try {
+      const { data, error } = await this.supabase!
+        .from('productos')
+        .select('*')
+        .or(`nombre.ilike.%${search}%,descripcion.ilike.%${search}%`)
+        .eq('activo', true)
+        .order('nombre')
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error en searchProductos:', error);
+      throw error;
+    }
   }
 
   // Métodos para Reportes

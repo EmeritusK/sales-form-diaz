@@ -81,6 +81,190 @@
   flex-shrink: 0;
 }
 
+/* Estilos para elementos de cliente en dropdown */
+.cliente-item {
+  padding: 8px 0;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cliente-item strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.cliente-item small {
+  color: #666;
+  font-size: 0.85em;
+  margin-left: 5px;
+}
+
+/* Controlar el alto del dropdown para evitar que se expanda */
+:host ::ng-deep .p-dropdown {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+:host ::ng-deep .p-dropdown .p-dropdown-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2 !important;
+  padding: 8px 12px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:host ::ng-deep .p-dropdown-panel {
+  max-width: 400px !important;
+}
+
+:host ::ng-deep .p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 8px 12px !important;
+  line-height: 1.2 !important;
+}
+
+/* Estilos específicos para el dropdown de clientes */
+.cliente-dropdown {
+  width: 100% !important;
+}
+
+:host ::ng-deep .cliente-dropdown {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+:host ::ng-deep .cliente-dropdown .p-dropdown-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100% !important;
+  line-height: 1.2 !important;
+  padding: 8px 12px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Estilo para el elemento seleccionado (más compacto) */
+.cliente-item-selected {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-weight: 500;
+  line-height: 1.2 !important;
+}
+
+/* Estilos específicos para el dropdown de productos */
+.producto-dropdown {
+  width: 100% !important;
+}
+
+:host ::ng-deep .producto-dropdown {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+:host ::ng-deep .producto-dropdown .p-dropdown-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100% !important;
+  line-height: 1.2 !important;
+  padding: 8px 12px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Estilo para el elemento seleccionado de productos (más compacto) */
+.producto-item-selected {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-weight: 500;
+  line-height: 1.2 !important;
+}
+
+/* Estilos para elementos de productos en el dropdown */
+.producto-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.producto-item strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.producto-item small {
+  color: #666;
+  font-size: 0.85em;
+}
+
+/* Estilos para paginación y lazy loading */
+.pagination-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 0.9em;
+  color: #666;
+  border-top: 1px solid #e9ecef;
+  margin-top: 10px;
+}
+
+.load-more-button {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+}
+
+.load-more-button p-button {
+  min-width: 120px;
+}
+
+/* Estilos para filtros de búsqueda */
+.search-container {
+  margin-bottom: 15px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Estilos para estados de carga */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #666;
+}
+
+.loading-state p-progressSpinner {
+  margin-right: 10px;
+}
+
 /* Loading overlay */
 .loading-overlay {
   position: fixed;

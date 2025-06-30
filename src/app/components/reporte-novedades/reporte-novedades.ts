@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SupabaseService, Vendedor, Cliente, Producto, EntradaReporte, CreateEntradaReporte } from '../../services/supabase.service';
+import { SupabaseService, Vendedor, Cliente, Producto, EntradaReporte, CreateEntradaReporte, PaginationResult, ClienteFilters } from '../../services/supabase.service';
 
 // PrimeNG Components
 import { ButtonModule } from 'primeng/button';
@@ -114,6 +114,20 @@ export class ReporteNovedadesComponent implements OnInit {
   clientes: Cliente[] = [];
   productos: Producto[] = [];
 
+  // Variables para lazy loading de clientes
+  clientesPaginated: PaginationResult<Cliente> | null = null;
+  currentPage = 1;
+  pageSize = 5;
+  searchTerm = '';
+  isLoadingMoreClientes = false;
+
+  // Variables para lazy loading de productos
+  productosPaginated: PaginationResult<Producto> | null = null;
+  currentPageProductos = 1;
+  pageSizeProductos = 5;
+  searchTermProductos = '';
+  isLoadingMoreProductos = false;
+
   // Estados de carga
   isLoading = false;
   isLoadingVendedores = false;
@@ -134,7 +148,7 @@ export class ReporteNovedadesComponent implements OnInit {
   showProductoModal = false;
   nuevoVendedorNombre = '';
   nuevoClienteNombre = '';
-  nuevoProductoNombre = '';
+  nuevoProductoNombre = '';;
 
   // Variables para rastrear valores anteriores
   private lastVendedorValue = '';
@@ -168,15 +182,11 @@ export class ReporteNovedadesComponent implements OnInit {
       this.vendedores = await this.supabaseService.getVendedores();
       this.isLoadingVendedores = false;
 
-      // Cargar clientes
-      this.isLoadingClientes = true;
-      this.clientes = await this.supabaseService.getClientes();
-      this.isLoadingClientes = false;
+      // Cargar clientes con lazy loading
+      await this.loadClientesPaginated();
 
-      // Cargar productos
-      this.isLoadingProductos = true;
-      this.productos = await this.supabaseService.getProductos();
-      this.isLoadingProductos = false;
+      // Cargar productos con lazy loading
+      await this.loadProductosPaginated();
 
     } catch (error) {
       console.error('Error cargando datos de referencia:', error);
@@ -185,6 +195,192 @@ export class ReporteNovedadesComponent implements OnInit {
       this.isLoadingVendedores = false;
       this.isLoadingClientes = false;
       this.isLoadingProductos = false;
+    }
+  }
+
+  // Método para cargar clientes con paginación
+  async loadClientesPaginated(page: number = 1, append: boolean = false): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      this.isLoadingClientes = true;
+
+      const result = await this.supabaseService.getClientesPaginated(
+        page,
+        this.pageSize,
+        this.searchTerm,
+        true
+      );
+
+      if (append && this.clientesPaginated) {
+        // Agregar nuevos clientes a la lista existente
+        this.clientesPaginated.data = [...this.clientesPaginated.data, ...result.data];
+        this.clientesPaginated.page = result.page;
+        this.clientesPaginated.totalPages = result.totalPages;
+      } else {
+        // Reemplazar completamente
+        this.clientesPaginated = result;
+      }
+
+      // Actualizar la lista de clientes para compatibilidad
+      this.clientes = this.clientesPaginated.data;
+      this.currentPage = result.page;
+
+      this.isLoadingClientes = false;
+    } catch (error) {
+      console.error('Error cargando clientes paginados:', error);
+      this.showMessage('Error cargando clientes. Verifica tu conexión a internet.', 'error');
+      this.isLoadingClientes = false;
+    }
+  }
+
+  // Método para cargar más clientes (lazy loading)
+  async loadMoreClientes(): Promise<void> {
+    if (this.isLoadingMoreClientes || !this.clientesPaginated) {
+      return;
+    }
+
+    if (this.currentPage >= this.clientesPaginated.totalPages) {
+      return; // Ya no hay más páginas
+    }
+
+    try {
+      this.isLoadingMoreClientes = true;
+      await this.loadClientesPaginated(this.currentPage + 1, true);
+      this.isLoadingMoreClientes = false;
+    } catch (error) {
+      console.error('Error cargando más clientes:', error);
+      this.isLoadingMoreClientes = false;
+    }
+  }
+
+  // Método para búsqueda de clientes
+  async searchClientes(search: string): Promise<void> {
+    this.searchTerm = search;
+    this.currentPage = 1;
+    await this.loadClientesPaginated(1, false);
+  }
+
+  // Método para búsqueda global de clientes (para autocompletado)
+  async searchClientesGlobal(search: string): Promise<Cliente[]> {
+    if (!search || search.length < 2) {
+      return [];
+    }
+
+    try {
+      return await this.supabaseService.searchClientes(search, 10);
+    } catch (error) {
+      console.error('Error en búsqueda global de clientes:', error);
+      return [];
+    }
+  }
+
+  // Método para manejar el filtro de clientes
+  async onClienteFilter(event: any): Promise<void> {
+    const filterValue = event.filter;
+    if (filterValue && filterValue.length >= 2) {
+      // Realizar búsqueda global
+      const resultados = await this.searchClientesGlobal(filterValue);
+      // Actualizar la lista de clientes con los resultados de búsqueda
+      this.clientes = resultados;
+    } else if (filterValue === '') {
+      // Si el filtro está vacío, cargar la primera página
+      await this.loadClientesPaginated(1, false);
+    }
+  }
+
+  // Método para cargar productos con paginación
+  async loadProductosPaginated(page: number = 1, append: boolean = false): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      this.isLoadingProductos = true;
+
+      const result = await this.supabaseService.getProductosPaginated(
+        page,
+        this.pageSizeProductos,
+        this.searchTermProductos,
+        true
+      );
+
+      if (append && this.productosPaginated) {
+        // Agregar nuevos productos a la lista existente
+        this.productosPaginated.data = [...this.productosPaginated.data, ...result.data];
+        this.productosPaginated.page = result.page;
+        this.productosPaginated.totalPages = result.totalPages;
+      } else {
+        // Reemplazar completamente
+        this.productosPaginated = result;
+      }
+
+      // Actualizar la lista de productos para compatibilidad
+      this.productos = this.productosPaginated.data;
+      this.currentPageProductos = result.page;
+
+      this.isLoadingProductos = false;
+    } catch (error) {
+      console.error('Error cargando productos paginados:', error);
+      this.showMessage('Error cargando productos. Verifica tu conexión a internet.', 'error');
+      this.isLoadingProductos = false;
+    }
+  }
+
+  // Método para cargar más productos (lazy loading)
+  async loadMoreProductos(): Promise<void> {
+    if (this.isLoadingMoreProductos || !this.productosPaginated) {
+      return;
+    }
+
+    if (this.currentPageProductos >= this.productosPaginated.totalPages) {
+      return; // Ya no hay más páginas
+    }
+
+    try {
+      this.isLoadingMoreProductos = true;
+      await this.loadProductosPaginated(this.currentPageProductos + 1, true);
+      this.isLoadingMoreProductos = false;
+    } catch (error) {
+      console.error('Error cargando más productos:', error);
+      this.isLoadingMoreProductos = false;
+    }
+  }
+
+  // Método para búsqueda de productos
+  async searchProductos(search: string): Promise<void> {
+    this.searchTermProductos = search;
+    this.currentPageProductos = 1;
+    await this.loadProductosPaginated(1, false);
+  }
+
+  // Método para búsqueda global de productos (para autocompletado)
+  async searchProductosGlobal(search: string): Promise<Producto[]> {
+    if (!search || search.length < 2) {
+      return [];
+    }
+
+    try {
+      return await this.supabaseService.searchProductos(search, 10);
+    } catch (error) {
+      console.error('Error en búsqueda global de productos:', error);
+      return [];
+    }
+  }
+
+  // Método para manejar el filtro de productos
+  async onProductoFilter(event: any): Promise<void> {
+    const filterValue = event.filter;
+    if (filterValue && filterValue.length >= 2) {
+      // Realizar búsqueda global
+      const resultados = await this.searchProductosGlobal(filterValue);
+      // Actualizar la lista de productos con los resultados de búsqueda
+      this.productos = resultados;
+    } else if (filterValue === '') {
+      // Si el filtro está vacío, cargar la primera página
+      await this.loadProductosPaginated(1, false);
     }
   }
 

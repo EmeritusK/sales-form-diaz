@@ -109,9 +109,38 @@
                 placeholder="Selecciona un cliente"
                 [filter]="true"
                 [showClear]="true"
-                class="w-full"
+                [filterBy]="'nombre,email,telefono'"
+                [filterMatchMode]="'contains'"
+                [filterPlaceholder]="'Buscar cliente...'"
+                class="w-full cliente-dropdown"
                 required
+                (onFilter)="onClienteFilter($event)"
+                (onChange)="onClienteChange($event)"
               >
+                <ng-template pTemplate="selectedItem" let-item>
+                  <div class="cliente-item-selected">
+                    {{ item.nombre }}
+                  </div>
+                </ng-template>
+                <ng-template pTemplate="item" let-item>
+                  <div class="cliente-item">
+                    <strong>{{ item.nombre }}</strong>
+                    <small *ngIf="item.email"> - {{ item.email }}</small>
+                    <small *ngIf="item.telefono"> - {{ item.telefono }}</small>
+                  </div>
+                </ng-template>
+                <ng-template pTemplate="emptyfilter" let-item>
+                  <div class="p-3 text-center">
+                    <p>No se encontraron clientes</p>
+                    <p-button
+                      label="Cargar más"
+                      icon="pi pi-refresh"
+                      size="small"
+                      (onClick)="loadMoreClientes()"
+                      [loading]="isLoadingMoreClientes"
+                    ></p-button>
+                  </div>
+                </ng-template>
               </p-dropdown>
               <p-button
                 type="button"
@@ -138,14 +167,35 @@
                 [filter]="true"
                 [showClear]="true"
                 [filterBy]="'nombre,descripcion'"
-                class="w-full"
+                [filterPlaceholder]="'Buscar producto...'"
+                class="w-full producto-dropdown"
                 required
+                (onFilter)="onProductoFilter($event)"
+                (onChange)="onProductoChange($event)"
               >
                 <ng-template pTemplate="selectedItem" let-item>
-                  {{ item.nombre }} <span *ngIf="item.precio_base">- ${{ item.precio_base }}</span>
+                  <div class="producto-item-selected">
+                    {{ item.nombre }} <span *ngIf="item.precio_base">- ${{ item.precio_base }}</span>
+                  </div>
                 </ng-template>
                 <ng-template pTemplate="item" let-item>
-                  {{ item.nombre }} <span *ngIf="item.precio_base">- ${{ item.precio_base }}</span>
+                  <div class="producto-item">
+                    <strong>{{ item.nombre }}</strong>
+                    <span *ngIf="item.precio_base"> - ${{ item.precio_base }}</span>
+                    <small *ngIf="item.descripcion"> - {{ item.descripcion }}</small>
+                  </div>
+                </ng-template>
+                <ng-template pTemplate="emptyfilter" let-item>
+                  <div class="p-3 text-center">
+                    <p>No se encontraron productos</p>
+                    <p-button
+                      label="Cargar más"
+                      icon="pi pi-refresh"
+                      size="small"
+                      (onClick)="loadMoreProductos()"
+                      [loading]="isLoadingMoreProductos"
+                    ></p-button>
+                  </div>
                 </ng-template>
               </p-dropdown>
               <p-button
