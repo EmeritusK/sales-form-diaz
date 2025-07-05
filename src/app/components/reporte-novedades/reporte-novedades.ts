@@ -488,16 +488,21 @@ export class ReporteNovedadesComponent implements OnInit {
       });
 
       // Preparar las entradas para guardar
-      const entradasParaGuardar: CreateEntradaReporte[] = this.entradas.map(entrada => {
-        // Encontrar IDs de cliente y producto
-        const cliente = this.clientes.find(c => c.nombre === entrada.cliente);
-        const producto = this.productos.find(p => p.nombre === entrada.producto);
+      const entradasParaGuardar: CreateEntradaReporte[] = [];
+
+      for (const entrada of this.entradas) {
+        // Buscar cliente y producto directamente en la base de datos
+        const clientesEncontrados = await this.supabaseService.searchClientes(entrada.cliente);
+        const productosEncontrados = await this.supabaseService.searchProductos(entrada.producto);
+
+        const cliente = clientesEncontrados.find((c: Cliente) => c.nombre === entrada.cliente);
+        const producto = productosEncontrados.find((p: Producto) => p.nombre === entrada.producto);
 
         if (!cliente || !producto) {
           throw new Error(`Cliente o producto no encontrado: ${entrada.cliente} / ${entrada.producto}`);
         }
 
-        return {
+        entradasParaGuardar.push({
           reporte_id: reporteCreado.id,
           factura: entrada.factura,
           cliente_id: cliente.id,
@@ -505,8 +510,8 @@ export class ReporteNovedadesComponent implements OnInit {
           cantidad: entrada.cantidad,
           precio_facturado: entrada.precioFacturado,
           precio_ofrecido: entrada.precioOfrecido
-        };
-      });
+        });
+      }
 
       // Guardar las entradas
       for (const entrada of entradasParaGuardar) {
